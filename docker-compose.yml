@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  semantic_ats:
+    build: .
+    container_name: semantic_ats
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - semantic_ats_network
+
+networks:
+  semantic_ats_network:
+    driver: bridge

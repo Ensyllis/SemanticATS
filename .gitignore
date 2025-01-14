@@ -1,0 +1,51 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs
+logs/
+*.log
+
+# Data directories
+data/resumes/*
+data/processed_resumes/*
+data/errors/*
+data/results/*
+!data/resumes/.gitkeep
+!data/processed_resumes/.gitkeep
+!data/errors/.gitkeep
+!data/results/.gitkeep
+!data/results/storyteller/.gitkeep
+!data/results/personality/.gitkeep
+
+# Docker
+.docker/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
