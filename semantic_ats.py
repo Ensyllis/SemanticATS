@@ -36,17 +36,15 @@ def setup_logging():
 class LLMProcessor:
     """Base class for LLM processing"""
     def __init__(self):
-        self.client = anthropic.Anthropic(
-            api_key=os.getenv("ANTHROPIC_API_KEY")
-        )
+        self.client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     
     async def process(self, text: str, prompt_template: str) -> str:
         """Process text using the LLM"""
         try:
-            message = await self.client.messages.create(
+            message = self.client.messages.create(
                 model="claude-3-5-sonnet-20241022",
                 max_tokens=1024,
-                temperature=0.7,
+                temperature=1,
                 messages=[
                     {
                         "role": "user",
@@ -54,7 +52,7 @@ class LLMProcessor:
                     }
                 ]
             )
-            return message.content
+            return str(message.content[0])
         except Exception as e:
             logging.error(f"Error in LLM processing: {str(e)}")
             raise
@@ -72,7 +70,7 @@ class EmbeddingModel:
         try:
             response = self.client.embed(
                 texts=texts,
-                model="voyage-3-large",
+                model="voyage-3",
                 input_type="document",
                 output_dimension=1024
             )
@@ -124,25 +122,41 @@ class SemanticATS:
         
         for dir_path in self.dirs.values():
             dir_path.mkdir(parents=True, exist_ok=True)
-            
+
     def _initialize_collections(self):
         """Initialize Qdrant collections for storyteller and personality"""
         collections = ["storyteller", "personality"]
         vector_size = 1024  # Voyage AI's default embedding size for voyage-3-large
-        
+
         for collection in collections:
             try:
-                self.qdrant.get_collection(collection)
-            except Exception:
+                # First, check if the collection exists
+                existing_collections = self.qdrant.get_collections().collections
+                if collection in [c.name for c in existing_collections]:
+                    self.logger.info(f"Collection already exists: {collection}")
+                    continue
+
+                # If it doesn't exist, create it with explicit config
                 self.qdrant.create_collection(
                     collection_name=collection,
                     vectors_config=models.VectorParams(
                         size=vector_size,
                         distance=models.Distance.COSINE
+                    ),
+                    optimizers_config=models.OptimizersConfigDiff(
+                        default_segment_number=2,
+                        max_optimization_threads=2
                     )
                 )
                 self.logger.info(f"Created collection: {collection}")
-    
+
+            except Exception as e:
+                self.logger.error(f"Error with collection {collection}: {str(e)}")
+                # If it's a validation error, let's be extra helpful in the logs
+                if "validation" in str(e).lower():
+                    self.logger.error("Validation error details: Check vector_size and optimizer configs")
+                raise
+
     async def storyteller(self, text: str) -> str:
         """Transform resume into a coherent story"""
         prompt = """WEIRD ASK BUT PLEASE REWRITE THIS CANDIDATE'S RESUME AS A COHERENT STORY."""
@@ -213,19 +227,31 @@ class SemanticATS:
                     points=batch
                 )
                 self.logger.info(f"Uploaded batch {i//BATCH_SIZE + 1} of {(len(points) + BATCH_SIZE - 1)//BATCH_SIZE} to {destination}")
+                
+            # TODO: You need to add a thing where onc eit finishes the upload it pushes and shoves it into the finished file thingy 
 
         except Exception as e:
             self.logger.error(f"Error uploading batch to Qdrant: {str(e)}")
             raise
         
+    
     def save_as_json(self, data: Dict[str, Any], category: str) -> None:
-        """Save data as JSON file"""
+        """Save data as JSON file with proper serialization"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = self.dirs[category] / f"{data['filename']}_{timestamp}.json"
-        
+
+        # Ensure all data is JSON serializable
+        serializable_data = {}
+        for key, value in data.items():
+            if isinstance(value, (str, int, float, bool, type(None))):
+                serializable_data[key] = value
+            else:
+                # Convert any complex objects to strings
+                serializable_data[key] = str(value)
+
         with open(filename, 'w') as f:
-            json.dump(data, f, indent=2)
-        
+            json.dump(serializable_data, f, indent=2)
+
         self.logger.info(f"Saved JSON file: {filename}")
     
     async def process_file(self, filepath: Path) -> None:
@@ -287,10 +313,14 @@ class SemanticATS:
 
         # Read all files
         for json_file in self.dirs['storyteller'].glob('*.json'):
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-                all_data.append(data)
-                texts_to_embed.append(data['story'])
+            try:
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+                    all_data.append(data)
+                    texts_to_embed.append(data['story'])
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON file: {json_file}")
+                print(f"Error message: {e}")
 
         if not texts_to_embed:
             self.logger.info("No storyteller files to process")
@@ -324,11 +354,15 @@ class SemanticATS:
 
         # Read all files
         for json_file in self.dirs['personality'].glob('*.json'):
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-                all_data.append(data)
-                texts_to_embed.append(data['personality'])
-
+            try:
+                with open(json_file, 'r') as f:
+                    data = json.load(f)
+                    all_data.append(data)
+                    texts_to_embed.append(data['personality'])
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON file: {json_file}")
+                print(f"Error message: {e}")
+        
         if not texts_to_embed:
             self.logger.info("No personality files to process")
             return
