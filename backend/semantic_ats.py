@@ -52,7 +52,7 @@ class LLMProcessor:
                     }
                 ]
             )
-            return str(message.content[0])
+            return str(message.content[0].text)
         except Exception as e:
             logging.error(f"Error in LLM processing: {str(e)}")
             raise

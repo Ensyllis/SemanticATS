@@ -1,16 +1,32 @@
-version: '3.8'
-
 services:
-  semantic_ats:
-    build: .
-    container_name: semantic_ats
+  frontend:
+    build: ./frontend
+    container_name: semantic_ats_frontend
+    ports:
+      - "5173:5173"
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
     env_file:
-      - .env
+      - ./backend/.env
     environment:
       - PYTHONUNBUFFERED=1
+    ports:
+      - "8000:8000"  # FastAPI port
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - semantic_ats_network
 
