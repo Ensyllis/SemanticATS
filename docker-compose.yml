@@ -3,14 +3,16 @@ services:
     build: ./frontend
     container_name: semantic_ats_frontend
     ports:
-      - "5173:5173"
+      - "80:80"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://192.34.61.136:8000
     depends_on:
       - backend
+    networks:
+      - semantic_ats_network
 
   backend:
     build:

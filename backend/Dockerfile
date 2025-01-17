@@ -31,4 +31,4 @@ RUN mkdir -p data/resumes \
 ENV PYTHONUNBUFFERED=1
 
 # Run the application
-CMD ["python", "semantic_ats.py"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
