@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronUp, Bookmark } from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, Bookmark, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 type SearchMode = 'story' | 'personality' | 'resume';
@@ -13,6 +13,56 @@ type SearchResult = {
   rawText?: string;
 };
 
+const Modal = ({ isOpen, onClose, candidate }: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  candidate: SearchResult | null 
+}) => {
+  if (!isOpen || !candidate) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg w-3/4 max-h-[90vh] overflow-y-auto p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">{candidate.filename}</h2>
+          <button onClick={onClose} className="p-2">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        
+        <div className="space-y-6">
+          {candidate.rawText && (
+            <div>
+              <h3 className="font-semibold mb-2">Resume + Story + Personality</h3>
+              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
+                <ReactMarkdown className="prose max-w-none">{candidate.rawText}</ReactMarkdown>
+              </div>
+            </div>
+          )}
+          
+          {candidate.personality && (
+            <div>
+              <h3 className="font-semibold mb-2">Personality</h3>
+              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
+                <ReactMarkdown className="prose max-w-none">{candidate.personality}</ReactMarkdown>
+              </div>
+            </div>
+          )}
+          
+          {candidate.story && (
+            <div>
+              <h3 className="font-semibold mb-2">Story</h3>
+              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
+                <ReactMarkdown className="prose max-w-none">{candidate.story}</ReactMarkdown>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function ResumeSearch() {
   const [mode, setMode] = useState<SearchMode>('story');
   const [query, setQuery] = useState('');
@@ -22,6 +72,7 @@ export default function ResumeSearch() {
   const [expandedResults, setExpandedResults] = useState<Set<number>>(new Set());
   const [savedCandidates, setSavedCandidates] = useState<SearchResult[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<SearchResult | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const searchResumes = async () => {
@@ -243,40 +294,33 @@ export default function ResumeSearch() {
         )}
       </div>
 
-      {selectedCandidate && (
+      {savedCandidates.length > 0 && (
         <div className="w-96 h-screen overflow-y-auto p-4 border-l border-gray-200 bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">{selectedCandidate.filename}</h2>
-          
-          <div className="space-y-6">
-            {selectedCandidate.rawText && (
-              <div>
-                <h3 className="font-semibold mb-2">Resume + Story + Personality</h3>
-                <div className="bg-white p-4 rounded-lg">
-                  <ReactMarkdown>{selectedCandidate.rawText}</ReactMarkdown>
-                </div>
+          <h2 className="text-xl font-bold mb-4">Saved Candidates</h2>
+          <div className="space-y-4">
+            {savedCandidates.map((candidate, index) => (
+              <div key={index} className="bg-white p-4 rounded-lg shadow">
+                <h3 className="font-semibold mb-2">{candidate.filename}</h3>
+                <button
+                  onClick={() => {
+                    setSelectedCandidate(candidate);
+                    setIsModalOpen(true);
+                  }}
+                  className="text-sm text-blue-500 hover:text-blue-600"
+                >
+                  View Details
+                </button>
               </div>
-            )}
-            
-            {selectedCandidate.personality && (
-              <div>
-                <h3 className="font-semibold mb-2">Personality</h3>
-                <div className="bg-white p-4 rounded-lg">
-                  <ReactMarkdown>{selectedCandidate.personality}</ReactMarkdown>
-                </div>
-              </div>
-            )}
-            
-            {selectedCandidate.story && (
-              <div>
-                <h3 className="font-semibold mb-2">Story</h3>
-                <div className="bg-white p-4 rounded-lg">
-                  <ReactMarkdown>{selectedCandidate.story}</ReactMarkdown>
-                </div>
-              </div>
-            )}
+            ))}
           </div>
         </div>
       )}
+
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        candidate={selectedCandidate} 
+      />
     </div>
   );
 }

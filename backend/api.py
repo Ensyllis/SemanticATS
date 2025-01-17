@@ -92,7 +92,7 @@ async def search_resumes(query: SearchQuery) -> SearchResponse:
                 # Now we're getting fancy - conditionally add fields based on mode
                 story=hit.payload.get("story") if query.mode in ["story", "resume"] else None,
                 personality=hit.payload.get("personality") if query.mode in ["personality", "resume"] else None,
-                rawText=hit.payload.get("full_text") if query.mode == "resume" else None
+                rawText=hit.payload.get("raw_text") if query.mode == "resume" else None
             )
             results.append(result)
         
