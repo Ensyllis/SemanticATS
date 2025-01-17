@@ -28,7 +28,7 @@ function App() {
         </div>
       </header>
       <main className="max-w-7xl mx-auto py-6 px-4">
-        <ResumeSearch />
+        <ResumeSearch darkMode={darkMode} />
       </main>
     </div>
   )

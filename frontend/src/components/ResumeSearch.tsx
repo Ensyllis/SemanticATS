@@ -13,19 +13,20 @@ type SearchResult = {
   rawText?: string;
 };
 
-const Modal = ({ isOpen, onClose, candidate }: { 
+const Modal = ({ isOpen, onClose, candidate, darkMode }: { 
   isOpen: boolean, 
   onClose: () => void, 
-  candidate: SearchResult | null 
+  candidate: SearchResult | null,
+  darkMode: boolean 
 }) => {
   if (!isOpen || !candidate) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-3/4 max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-3/4 max-h-[90vh] overflow-y-auto p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">{candidate.filename}</h2>
-          <button onClick={onClose} className="p-2">
+          <h2 className="text-xl font-bold dark:text-white">{candidate.filename}</h2>
+          <button onClick={onClose} className="p-2 dark:text-gray-300">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -33,27 +34,27 @@ const Modal = ({ isOpen, onClose, candidate }: {
         <div className="space-y-6">
           {candidate.rawText && (
             <div>
-              <h3 className="font-semibold mb-2">Resume + Story + Personality</h3>
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
-                <ReactMarkdown className="prose max-w-none">{candidate.rawText}</ReactMarkdown>
+              <h3 className="font-semibold mb-2 dark:text-white">Resume + Story + Personality</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg whitespace-pre-wrap break-words overflow-x-auto">
+                <ReactMarkdown className="prose dark:prose-invert max-w-none dark:text-white whitespace-pre-wrap break-words overflow-x-auto">{candidate.rawText}</ReactMarkdown>
               </div>
             </div>
           )}
           
           {candidate.personality && (
             <div>
-              <h3 className="font-semibold mb-2">Personality</h3>
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
-                <ReactMarkdown className="prose max-w-none">{candidate.personality}</ReactMarkdown>
+              <h3 className="font-semibold mb-2 dark:text-white">Personality</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg whitespace-pre-wrap break-words">
+                <ReactMarkdown className="prose dark:prose-invert max-w-none dark:text-white">{candidate.personality}</ReactMarkdown>
               </div>
             </div>
           )}
           
           {candidate.story && (
             <div>
-              <h3 className="font-semibold mb-2">Story</h3>
-              <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap break-words">
-                <ReactMarkdown className="prose max-w-none">{candidate.story}</ReactMarkdown>
+              <h3 className="font-semibold mb-2 dark:text-white">Story</h3>
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg whitespace-pre-wrap break-words">
+                <ReactMarkdown className="prose dark:prose-invert max-w-none dark:text-white">{candidate.story}</ReactMarkdown>
               </div>
             </div>
           )}
@@ -63,7 +64,7 @@ const Modal = ({ isOpen, onClose, candidate }: {
   );
 };
 
-export default function ResumeSearch() {
+export default function ResumeSearch({ darkMode }: { darkMode: boolean }) {
   const [mode, setMode] = useState<SearchMode>('story');
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -141,6 +142,10 @@ export default function ResumeSearch() {
     }
   };
 
+  const removeCandidate = (filename: string) => {
+    setSavedCandidates(savedCandidates.filter(candidate => candidate.filename !== filename));
+  };
+
   const renderResultContent = (result: SearchResult, index: number) => {
     const isExpanded = expandedResults.has(index);
     let content;
@@ -165,7 +170,7 @@ export default function ResumeSearch() {
 
     return (
       <>
-        <div className="text-gray-600">
+        <div className="text-gray-600 dark:text-gray-300">
           <ReactMarkdown>{truncatedContent}</ReactMarkdown>
         </div>
         {content.length > 400 && (
@@ -249,7 +254,7 @@ export default function ResumeSearch() {
         </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
+        <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400">
           {error}
         </div>
       )}
@@ -263,31 +268,51 @@ export default function ResumeSearch() {
             {results.map((result, index) => (
               <div
                 key={index}
-                className="p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                className="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold">{result.filename}</h3>
-                    <span className="text-sm text-gray-500">
+                    <h3 className="text-lg font-semibold dark:text-white">{result.filename}</h3>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       Score: {(result.score * 100).toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setSelectedCandidate(result)}
-                      className="px-3 py-1 text-sm bg-blue-100 text-blue-600 rounded hover:bg-blue-200"
+                      onClick={() => {
+                        setSelectedCandidate(result);
+                        setIsModalOpen(true);
+                      }}
+                      className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded hover:bg-blue-200 dark:hover:bg-blue-800"
                     >
                       View Details
                     </button>
                     <button
-                      onClick={() => saveCandidate(result)}
-                      className="px-3 py-1 text-sm bg-green-100 text-green-600 rounded hover:bg-green-200"
+                      onClick={() => {
+                        const isSaved = savedCandidates.some(saved => saved.filename === result.filename);
+                        if (isSaved) {
+                          removeCandidate(result.filename);
+                        } else {
+                          saveCandidate(result);
+                        }
+                      }}
+                      className={`px-3 py-1 text-sm rounded ${
+                        savedCandidates.some(saved => saved.filename === result.filename)
+                          ? 'bg-green-500 dark:bg-green-600 text-white dark:text-white'
+                          : 'bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300'
+                      } hover:opacity-80`}
                     >
-                      <Bookmark className="w-4 h-4" />
+                      <Bookmark className={`w-4 h-4 ${
+                        savedCandidates.some(saved => saved.filename === result.filename)
+                          ? 'fill-current'
+                          : ''
+                      }`} />
                     </button>
                   </div>
                 </div>
-                {renderResultContent(result, index)}
+                <div className="text-gray-600 dark:text-gray-300">
+                  {renderResultContent(result, index)}
+                </div>
               </div>
             ))}
           </div>
@@ -295,18 +320,26 @@ export default function ResumeSearch() {
       </div>
 
       {savedCandidates.length > 0 && (
-        <div className="w-96 h-screen overflow-y-auto p-4 border-l border-gray-200 bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">Saved Candidates</h2>
+        <div className="w-96 h-screen overflow-y-auto p-4 border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          <h2 className="text-xl font-bold mb-4 dark:text-white">Saved Candidates</h2>
           <div className="space-y-4">
             {savedCandidates.map((candidate, index) => (
-              <div key={index} className="bg-white p-4 rounded-lg shadow">
-                <h3 className="font-semibold mb-2">{candidate.filename}</h3>
+              <div key={index} className="bg-white dark:bg-gray-700 p-4 rounded-lg shadow">
+                <div className="flex justify-between items-start">
+                  <h3 className="font-semibold mb-2 dark:text-white">{candidate.filename}</h3>
+                  <button
+                    onClick={() => removeCandidate(candidate.filename)}
+                    className="text-green-500 dark:text-green-400 hover:text-green-600 dark:hover:text-green-300 transition-transform duration-200 hover:scale-110"
+                  >
+                    <Bookmark className="w-4 h-4 fill-current" />
+                  </button>
+                </div>
                 <button
                   onClick={() => {
                     setSelectedCandidate(candidate);
                     setIsModalOpen(true);
                   }}
-                  className="text-sm text-blue-500 hover:text-blue-600"
+                  className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                 >
                   View Details
                 </button>
@@ -319,7 +352,8 @@ export default function ResumeSearch() {
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        candidate={selectedCandidate} 
+        candidate={selectedCandidate}
+        darkMode={darkMode}
       />
     </div>
   );
