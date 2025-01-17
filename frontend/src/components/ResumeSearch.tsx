@@ -13,7 +13,7 @@ type SearchResult = {
   rawText?: string;
 };
 
-const Modal = ({ isOpen, onClose, candidate, darkMode }: { 
+const Modal = ({ isOpen, onClose, candidate }: { 
   isOpen: boolean, 
   onClose: () => void, 
   candidate: SearchResult | null,
