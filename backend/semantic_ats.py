@@ -218,7 +218,6 @@ class SemanticATS:
                     )
                 )
 
-            # Upload in batches of 100 (common safe batch size for vector DBs)
             BATCH_SIZE = 100
             for i in range(0, len(points), BATCH_SIZE):
                 batch = points[i:i + BATCH_SIZE]

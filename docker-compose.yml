@@ -3,10 +3,7 @@ services:
     build: ./frontend
     container_name: semantic_ats_frontend
     ports:
-      - "80:80"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - "3000:80"
     environment:
       - VITE_API_URL=http://192.34.61.136:8000
     depends_on:
@@ -15,20 +12,13 @@ services:
       - semantic_ats_network
 
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    volumes:
-      - ./backend/data:/app/data
-      - ./backend/logs:/app/logs
+    image: ensyllis/semanticats-backend:latest
+    ports:
+      - "8000:8000"
     env_file:
-      - ./backend/.env
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
-    ports:
-      - "8000:8000"  # FastAPI port
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - semantic_ats_network
 
