@@ -1,6 +1,6 @@
 services:
   frontend:
-    build: ./frontend
+    image: ensyllis/semanticats-frontend:latest
     container_name: semantic_ats_frontend
     ports:
       - "3000:80"
