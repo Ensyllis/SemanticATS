@@ -1,5 +1,8 @@
 # Semantic ATS
 
+## P.S. Need Help?
+If something's not working, reach out. I built this in 4 days but happy to help you set it up on your servers. If you're in Chicago, buy me a good coffee/drink and we can debug together. josephliu1127@gmail.com
+
 ## Introduction
 Semantic ATS is a resume screening system that uses modern AI to understand the actual context and impact of candidates' experience, rather than just counting keywords. Built with Claude 3.5 for story extraction, VoyageAI for semantic embeddings, and Qdrant for vector search.
 
@@ -115,4 +118,3 @@ docker-compose up -d
 ## P.S. Need Help?
 If something's not working, reach out. I built this in 4 days but happy to help you set it up on your servers. If you're in Chicago, buy me a good coffee/drink and we can debug together.
 
-Made with caffeine and mild frustration with traditional ATS systems.
