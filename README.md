@@ -52,16 +52,16 @@ First, create the following directory structure in your backend folder:
 
 ```
 backend/
-Γö£ΓöÇΓöÇ semantic_ats.py
-Γö£ΓöÇΓöÇ api.py
-Γö£ΓöÇΓöÇ .env
-ΓööΓöÇΓöÇ data/
-    Γö£ΓöÇΓöÇ resumes/            # Place your raw resume files here
-    Γö£ΓöÇΓöÇ processed_resumes/  # Successfully processed resumes are moved here
-    Γö£ΓöÇΓöÇ errors/             # Problematic files are moved here
-    ΓööΓöÇΓöÇ results/
-        Γö£ΓöÇΓöÇ storyteller/    # JSON results for storyteller analysis
-        ΓööΓöÇΓöÇ personality/    # JSON results for personality analysis
+├── semantic_ats.py
+├── api.py
+├── .env
+└── data/
+    ├── resumes/            # Place your raw resume files here
+    ├── processed_resumes/  # Successfully processed resumes are moved here
+    ├── errors/             # Problematic files are moved here
+    └── results/
+        ├── storyteller/    # JSON results for storyteller analysis
+        └── personality/    # JSON results for personality analysis
 ```
 
 You don't need to manually create these folders; the script will automatically create them when run.
@@ -372,4 +372,4 @@ If you're in the Chicago area, the developer has offered to help with setup and 
 
 ---
 
-Built with Γ¥ñ∩╕Å by Joseph Liu
+Built by Joseph Liu
